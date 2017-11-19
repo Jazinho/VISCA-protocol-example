@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jssc (2)">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/visca_lib/jssc.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
