@@ -15,6 +15,8 @@ import java.net.InetSocketAddress;
 
 public class Main {
     public static int check = 0;
+    public static String response = "";
+    public static SerialPort port;
 
     private static String htmlPage =
             "<html>" + "<body>\n" +
@@ -26,6 +28,16 @@ public class Main {
             "</body></html>";
 
     public static void main(String[] args) throws IOException {
+        String portNumber = "COM11";
+        port = new SerialPort(portNumber);
+
+        try {
+            port.openPort();
+            port.setParams(9600, 8, 1, 0);
+        } catch (SerialPortException e) {
+            e.printStackTrace();
+        }
+
         HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
         server.createContext("/test", new MyHandler()); //management endpoint
         server.setExecutor(null); // creates a default executor
@@ -39,6 +51,10 @@ public class Main {
             if(check > 0) {
                 String out = executePostBody(t);
                 executeCommand(out);
+                byte[] bytes = htmlPage.replace("</body></html>","<div>" + response + "</div></body></html>").getBytes();
+                t.sendResponseHeaders(200, bytes.length);
+                OutputStream os = t.getResponseBody();
+                os.write(bytes);
             }
             check = check + 1;
 
@@ -73,22 +89,13 @@ public class Main {
     }
 
     public static void execute(String[] args) {
-        String portNumber = "COM11";
-        SerialPort port = new SerialPort(portNumber);
-
-        try {
-            port.openPort();
-            port.setParams(9600, 8, 1, 0);
-        } catch (SerialPortException e) {
-            e.printStackTrace();
-        }
 
         String comm = args[0];
         int val = (byte) 0;
         if (args.length >1){
             val = Integer.parseInt(args[1]);
         }
-        System.out.println("Doing: " + comm + " with argument: " + val);
+        response = "Doing: " + comm + " with argument: " + val;
         byte[] ex;
 
         try {
@@ -120,7 +127,7 @@ public class Main {
                     cmdData = (new ZoomTeleStdCmd()).createCommandData();
                     break;
                 default:
-                    System.out.println("Not recognized command");
+                    response = "Not recognized command";
             }
 
             ViscaCommand vCmd = new ViscaCommand();
